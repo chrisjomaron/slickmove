@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e -x
+
+yum install --disableplugin=priorities -y httpd git vim
+
+#yum install -y ruby19 wget curl ruby19-devel make gcc nginx
+#gem install bundler
+#ssh-keygen
+
+cat << EOF >> /var/www/html/index.html
+<html>
+<head>
+</head>
+<body>
+Hello! I am a <%= environment %> server,  `uname -a`
+</body>
+</html>
+EOF
+
+service httpd start
+
+#setfacl -m d:g:apache:r /home/ec2-user/

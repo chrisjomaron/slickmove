@@ -1,0 +1,17 @@
+# ensure AllowOverride All is set
+# so htaccess commands will work
+# or put this in httpd.conf
+
+# auth constraints
+AuthType Basic  
+AuthName "Supply a valid username and password"
+AuthUserFile /etc/httpd/htpasswd_main
+Require valid-user
+
+# keep cookie for this long...
+CookieExpires 2 weeks 
+
+# this registers a CGI script to update the repos
+# and triggers it for any  .update request
+Action update-repos /var/www/cgi-bin/update_repos.sh virtual
+AddHandler update-repos .update
