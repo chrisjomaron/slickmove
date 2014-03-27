@@ -1,22 +1,44 @@
 #!/bin/bash
 set -e -x
 
-yum install --disableplugin=priorities -y httpd git vim
+yum install --disableplugin=priorities -y nginx git vim wget curl java-1.7.0-openjdk-devel unzip
 
-#yum install -y ruby19 wget curl ruby19-devel make gcc nginx
-#gem install bundler
-#ssh-keygen
+cd /opt && wget http://downloads.typesafe.com/play/2.2.2/play-2.2.2.zip && unzip play-2.2.2.zip && chown -R ec2-user play-2.2.2
 
-cat << EOF >> /var/www/html/index.html
-<html>
-<head>
-</head>
-<body>
-Hello! I am a <%= environment %> server,  `uname -a`
-</body>
-</html>
-EOF
+echo "PATH=$PATH:/opt/play-2.2.2" >> /home/ec2-user/.bash_profile
 
-service httpd start
+# configure nginx to reverse proxy 4 instances of play
 
-#setfacl -m d:g:apache:r /home/ec2-user/
+cat << EOF >> /etc/nginx.conf
+server {
+        listen       80;
+        server_name  localhost;
+
+        location /motor {
+            proxy_pass   http://localhost:8081;
+        }
+        location /baz {
+            proxy_pass   http://localhost:8082;
+        }
+        location /bar {
+            proxy_pass   http://localhost:8083;
+        }
+        location /foo {
+            proxy_pass   http://localhost:8084;
+        }
+
+        error_page  404              /404.html;
+        location = /40x.html {
+            root   /usr/share/nginx/html;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+
+    }
+EOF 
+
+chkconfig nginx on
+service nginx start
